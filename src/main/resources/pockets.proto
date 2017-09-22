@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package com.nl.network.generated;
+option java_multiple_files = true;
+
+enum PocketType{
+    LOGIN = 0;
+    PLAYER_INFO = 1;
+    CREATE_CHARACTER = 2;
+    CHARACTER = 3;
+    CHARACTER_SELECT = 4;
+    LOAD_LEVEL = 5;
+    LEVEL_READY = 6;
+    FAILED = 666;
+}
+
+enum CharacterType{
+    WARRIOR = 0;
+    PROEST = 1;
+}
+
+message NetworkPocket{
+    PocketType type = 1;
+    oneof test_oneof {
+        NLLogin login = 2;
+        NLPlayerInfo playerInfo = 3;
+        NLCreateCharacter createCharacter = 4;
+        NLCharacterSelect characterSelect = 5;
+        NLLoadLevel loadLevel = 6;
+        NLLevelReady levelReady = 7;
+        NLFailed failed = 666;
+    }
+}
+
+message NLLogin {
+    string login = 1;
+    string password = 2;
+}
+
+message NLPlayerInfo {
+    int64 id = 1;
+    repeated NLCharacter charaters = 2;
+}
+
+message NLCreateCharacter {
+    string name = 1;
+    CharacterType type = 2;
+}
+
+message NLCharacter {
+    int64 id = 1;
+    string name = 2;
+    int32 level = 3;
+    CharacterType type = 4;
+}
+
+message NLCharacterSelect{
+    int64 id = 1;
+}
+
+message NLLoadLevel{
+    string level = 1;
+}
+
+message NLLevelReady{}
+
+message NLFailed {
+    string errorCode = 1;
+    string errordesc = 2;
+}
