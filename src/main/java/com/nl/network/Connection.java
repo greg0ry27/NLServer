@@ -9,9 +9,12 @@ import akka.event.LoggingAdapter;
 import akka.io.Tcp;
 import akka.io.TcpMessage;
 import akka.util.ByteString;
-import com.nl.network.generated.NetworkPocket;
+import generated.NetworkPacket;
+
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class Connection extends AbstractActor {
 
@@ -43,6 +46,7 @@ public class Connection extends AbstractActor {
 
     private Connection(InetSocketAddress remoteAddress, ActorRef connection) {
         this.remoteAddress = remoteAddress;
+        this.connection = connection;
         this.dispatcher = getContext().actorOf(Dispatcher.props());
     }
 
@@ -52,20 +56,41 @@ public class Connection extends AbstractActor {
                 .match(Tcp.Received.class, msg -> {
                     ByteString data = msg.data();
                     bytesReaded += data.length();
-                    NetworkPocket pocket = NetworkPocket.parseFrom(data.asByteBuffer());
-                    dispatcher.tell(pocket, self());
+                    System.out.println("Read data: " + data.length());
+                    ByteBuffer byteBuffer = data.asByteBuffer();
+
+                    while (byteBuffer.hasRemaining()){
+                        if (byteBuffer.remaining() < 4)
+                            return;
+
+                        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+                        int size = byteBuffer.getInt();
+                        if (byteBuffer.remaining() < size)
+                            return;
+
+                        byte[] binaryData = new byte[size];
+                        byteBuffer.get(binaryData);
+
+                        NetworkPacket pocket = NetworkPacket.parseFrom(binaryData);
+                        dispatcher.tell(pocket, self());
+                    }
                 })
-                .match(NetworkPocket.class, msg -> {
+                .match(NetworkPacket.class, msg -> {
                     ByteString data = ByteString.fromArray(msg.toByteArray());
                     int dataSize = data.size();
-                    Tcp.Command command = TcpMessage.write(data, new ACK(dataSize));
+                    ByteBuffer buffer = ByteBuffer.allocateDirect(data.size() + 4);
+                    buffer.order(ByteOrder.LITTLE_ENDIAN);
+                    buffer.putInt(dataSize);
+                    buffer.put(data.toArray());
+                    buffer.position(0);
+                    Tcp.Command command = TcpMessage.write(ByteString.fromByteBuffer(buffer), new ACK(dataSize));
                     writeBuffer+= dataSize;
                     connection.tell(command, self());
-                    log.debug("Write buffer state[+]: {}", writeBuffer);
+                    System.out.println("Write buffer state[+]: " + writeBuffer);
                 })
                 .match(ACK.class, msg -> {
                     writeBuffer-=msg.dataSize;
-                    log.debug("Write buffer state[-]: {}", writeBuffer);
+                    System.out.println("Write buffer state[-]: " + writeBuffer);
                 })
                 .match(Tcp.ConnectionClosed.class, msg -> {
                     getContext().stop(self());

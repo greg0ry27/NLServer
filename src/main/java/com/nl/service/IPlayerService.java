@@ -11,6 +11,11 @@ import java.util.List;
  */
 public interface IPlayerService {
 
+    class LoginToken{
+        public String playerId;
+        public String sessionId;
+        public String publicKey;
+    }
     /**
      * Login player with credentials
      * @param login
@@ -18,7 +23,7 @@ public interface IPlayerService {
      * @return PlayerId if player login sucess, or null if unsuccess
      * @apiNote  blocking send-request-reply
      */
-    Option<String> doLogin(String login, String password);
+    Option<LoginToken> doLogin(String login, String password);
 
     /**
      * Return Character list, belongs this playerId

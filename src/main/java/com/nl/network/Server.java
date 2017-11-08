@@ -35,12 +35,13 @@ public class Server extends AbstractActor{
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Tcp.Bound.class, msg -> {
-                    log.debug("Server is ready to accept connections on {}", address);
+                    System.out.println("Server is ready to accept connections on " + address);
                 })
                 .match(Tcp.CommandFailed.class, msg -> {
                     getContext().stop(self());
-                    log.debug("Start server failed on {}{", address);
+                    System.out.println("Start server failed on " + address);
                 }).match(Tcp.Connected.class, conn -> {
+                    System.out.println("Accept connection from " + conn.remoteAddress());
                     ActorRef connection = getSender();
                     ActorRef handler = getContext().actorOf(Connection.props(conn.remoteAddress(), connection));
                     getSender().tell(TcpMessage.register(handler), self());

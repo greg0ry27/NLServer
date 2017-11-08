@@ -2,25 +2,32 @@ package com.nl.network.util;
 
 import com.nl.data.ErrorCodes;
 import com.nl.data.PlayerCharacter;
-import com.nl.network.generated.CharacterType;
-import com.nl.network.generated.NLCharacter;
-import com.nl.network.generated.NLFailed;
-import com.nl.network.generated.NLPlayerInfo;
-import com.nl.network.generated.NetworkPocket;
-import com.nl.network.generated.PocketType;
+import generated.*;
+import generated.Character;
 
 import java.util.List;
 
 public class NetworkUtils {
 
-    public static NetworkPocket characterList(String playerId, List<PlayerCharacter> characters){
+    public static NetworkPacket loginAccepted(String sessionId, String publicKey) {
+        LoginAccepted loginAccepted = LoginAccepted.newBuilder()
+                .setSessionId(sessionId)
+                .setPublicKey(publicKey)
+                .build();
+
+        return NetworkPacket.newBuilder()
+                .setType(PacketType.LOGIN_ACCEPTED)
+                .setLoginAccepted(loginAccepted)
+                .build();
+    }
+
+    public static NetworkPacket characterList(String playerId, List<PlayerCharacter> characters) {
         Long id = Long.parseLong(playerId);
 
-        NLPlayerInfo.Builder playerInfoBuilder = NLPlayerInfo.newBuilder().setId(id);
+        PlayerInfo.Builder playerInfoBuilder = PlayerInfo.newBuilder().setId(id);
 
-        for(int i = 0; i<characters.size(); i++){
-            PlayerCharacter pch = characters.get(i);
-            playerInfoBuilder.setCharaters(i, NLCharacter.newBuilder()
+        for (PlayerCharacter pch : characters) {
+            playerInfoBuilder.addCharaters(Character.newBuilder()
                     .setId(pch.getId())
                     .setLevel(pch.getLevel())
                     .setName(pch.getName())
@@ -28,20 +35,20 @@ public class NetworkUtils {
             );
         }
 
-        return NetworkPocket.newBuilder()
-                .setType(PocketType.PLAYER_INFO)
+        return NetworkPacket.newBuilder()
+                .setType(PacketType.PLAYER_INFO)
                 .setPlayerInfo(playerInfoBuilder.build())
                 .build();
     }
 
-    public static NetworkPocket loginFiled(){
+    public static NetworkPacket loginFiled() {
         return NetworkUtils.error(ErrorCodes.LOGIN_FAILED, "Login or password incorrect");
     }
 
-    public static NetworkPocket error(int errorCode, String errorDesc){
-        return NetworkPocket.newBuilder()
-                .setType(PocketType.FAILED).setFailed(
-                        NLFailed.newBuilder()
+    public static NetworkPacket error(int errorCode, String errorDesc) {
+        return NetworkPacket.newBuilder()
+                .setType(PacketType.LOGIN_FAILED).setLoginFailed(
+                        LoginFailed.newBuilder()
                                 .setErrorCode(String.valueOf(errorCode))
                                 .setErrordesc(errorDesc)
                                 .build())

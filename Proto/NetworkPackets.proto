@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package generated;
+option java_multiple_files = true;
+
+enum PacketType{
+    LOGIN               = 0;
+    LOGIN_ACCEPTED      = 1;
+    LOGIN_FAILED        = 2;
+    PLAYER_INFO         = 3;
+    CREATE_CHARACTER    = 4;    
+    CHARACTER_SELECT    = 5;
+    LOAD_LEVEL          = 6;
+    LEVEL_READY         = 7;
+    SERVER_ERROR        = 8;
+    PING                = 9;
+    PONG                = 10;
+}
+
+enum CharacterType{
+    WARRIOR = 0;
+    PRIEST = 1;
+}
+
+message NetworkPacket{
+    PacketType type = 1;
+    oneof test_oneof {
+        Login login                     = 2;
+        LoginAccepted loginAccepted     = 3;
+        LoginFailed loginFailed         = 4;
+        PlayerInfo playerInfo           = 5;
+        CreateCharacter createCharacter = 6;
+        CharacterSelect characterSelect = 7;
+        LoadLevel loadLevel             = 8;
+        LevelReady levelReady           = 9;        
+    }
+}
+
+message Login {
+    string Login = 1;
+    string password = 2;
+}
+
+message LoginAccepted {
+    string SessionId = 1;
+    string PublicKey = 2;
+}
+
+message LoginFailed {
+    string errorCode = 1;
+    string errordesc = 2;
+}
+
+message PlayerInfo {
+    int64 id = 1;
+    repeated Character charaters = 2;
+}
+
+message CreateCharacter {
+    string name = 1;
+    CharacterType type = 2;
+}
+
+message Character {
+    int64 id = 1;
+    string name = 2;
+    int32 level = 3;
+    CharacterType type = 4;
+}
+
+message CharacterSelect{
+    int64 id = 1;
+}
+
+message LoadLevel{
+    string level = 1;
+}
+
+message LevelReady{}

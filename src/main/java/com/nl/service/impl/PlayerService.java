@@ -1,21 +1,28 @@
 package com.nl.service.impl;
 
-import akka.dispatch.Futures;
+import akka.actor.Props;
 import akka.japi.Option;
 import com.nl.data.PlayerCharacter;
 import com.nl.data.PlayerCharacterType;
 import com.nl.service.IPlayerService;
-import scala.concurrent.Future;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 public class PlayerService implements IPlayerService{
 
     @Override
-    public Option<String> doLogin(String login, String password) {
+    public Option<LoginToken> doLogin(String login, String password) {
         System.out.println("Login: " + login + " Password: " + password);
-        return Option.some("1");
+
+        LoginToken token = new LoginToken();
+        token.playerId = "1";
+        token.sessionId = "123456";
+        token.publicKey = "qwerty";
+
+        return Option.some(token);
     }
 
     @Override
@@ -28,4 +35,8 @@ public class PlayerService implements IPlayerService{
         return true;
     }
 
+    @Override
+    public PlayerCharacter findCharacter(String characterId) {
+        return null;
+    }
 }
